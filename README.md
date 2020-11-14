@@ -5,3 +5,8 @@ This is a project of home security system that is able to take photo of moving o
 * A regular PIR sensor.
 * Digital camera OV7670.
 * TFT-LSD 128x128 display based on ST7735.
+# Software
+* CubeIDE.
+* HAL and CMSIS Drivers.
+* FreeRTOS.
+* PyCharm.
