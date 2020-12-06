@@ -9,5 +9,5 @@ This is a project of home security system that is able to take photo of moving o
 * CubeIDE.
 * HAL and CMSIS Drivers.
 * FreeRTOS.
-* LWIP.
+* LwIP.
 * PyCharm.
