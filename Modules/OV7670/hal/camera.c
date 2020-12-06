@@ -60,6 +60,12 @@ RET camera_startCap(uint32_t capMode, void* destHandle)
   return ov7670_startCap(ov7670CapMode, (uint32_t)destHandle);
 }
 
+RET camera_startCapCropped(uint32_t capMode, void* destAddress,
+		uint32_t startLine, uint32_t linesQty)
+{
+	return ov7670_startCapCropped(capMode, (uint32_t)destAddress, startLine, linesQty);
+}
+
 RET camera_stopCap()
 {
   return ov7670_stopCap();

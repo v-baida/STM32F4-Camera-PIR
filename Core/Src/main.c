@@ -23,13 +23,12 @@
 #include "dcmi.h"
 #include "dma.h"
 #include "i2c.h"
+#include "lwip.h"
 #include "spi.h"
-#include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "semphr.h"
 #include "camera.h"
 #include "ST7735.h"
 #include "stdio.h"
@@ -42,6 +41,13 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+/*
+#define PICTURE_SIZE CAM_VGA_WIDTH * CAM_VGA_HEIGHT * 2
+We send PICTURE_DIVIDER pieces of picture in order to minimize buffer size
+ Every piece is a cropped original picture
+#define PICTURE_DIVIDER 10
+#define BUFFER_SIZE  PICTURE_SIZE/PICTURE_DIVIDER
+*/
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -52,10 +58,8 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-extern osSemaphoreId_t bCameraSemaphoreHandle;
-extern osSemaphoreId_t bUartSemaphoreHandle;
-extern osSemaphoreId_t bDisplaySemaphoreHandle;
-uint8_t  CAM_Frame_Buffer[CAM_VGA_WIDTH * CAM_VGA_HEIGHT * 2] = {0};
+//extern uint8_t CAM_Frame_Buffer[BUFFER_SIZE];
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -109,7 +113,6 @@ int main(void)
   MX_DCMI_Init();
   MX_I2C2_Init();
   MX_SPI1_Init();
-  MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
   HAL_NVIC_DisableIRQ(PIR_SENSOR_EXTI_IRQn);
   ST7735_Init();
@@ -117,24 +120,34 @@ int main(void)
   camera_config(CAMERA_MODE_QVGA_RGB565);
   ST7735_FillScreen(ST7735_CYAN);
 
-//  printf("IPSR value = %d\n\r", __get_IPSR());
+/*  for (uint32_t i = 0; i < BUFFER_SIZE; i++)
+  {
+	  CAM_Frame_Buffer[i] = i % 255;
+  }*/
   /* USER CODE END 2 */
 
-  /* Init scheduler */
-  osKernelInitialize();  /* Call init function for freertos objects (in freertos.c) */
+  /* Call init function for freertos objects (in freertos.c) */
   MX_FREERTOS_Init();
   /* Start scheduler */
-  xSemaphoreTake(bUartSemaphoreHandle, portMAX_DELAY);
-  xSemaphoreTake(bCameraSemaphoreHandle, portMAX_DELAY);
-  xSemaphoreGive(bDisplaySemaphoreHandle);
-  HAL_NVIC_EnableIRQ(PIR_SENSOR_EXTI_IRQn);
   osKernelStart();
 
   /* We should never get here as control is now taken by the scheduler */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+//  uint16_t crop_start_line = 0;
   while (1)
   {
+/*	  for (uint8_t i = 0; i < PICTURE_DIVIDER; i++)
+	  		{
+
+	  			crop_start_line = i * CAM_VGA_HEIGHT / PICTURE_DIVIDER;
+//	  			camera_startCap(CAMERA_CAP_SINGLE_FRAME, (void*) CAM_Frame_Buffer);
+	  			camera_startCapCropped(CAMERA_CAP_SINGLE_FRAME,
+	  					(void*) CAM_Frame_Buffer, crop_start_line,
+	  					CAM_VGA_HEIGHT / PICTURE_DIVIDER);
+	  			HAL_Delay(100);
+	  		}
+	  		camera_stopCap();*/
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -180,6 +193,7 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
+
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
   {
     Error_Handler();

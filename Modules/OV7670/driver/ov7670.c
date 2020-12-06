@@ -88,6 +88,25 @@ RET ov7670_startCap(uint32_t capMode, uint32_t destAddress)
 	return RET_OK;
 }
 
+RET ov7670_startCapCropped(uint32_t capMode, uint32_t destAddress,
+		uint32_t startLine, uint32_t linesQty)
+{
+	ov7670_stopCap();
+
+	if (capMode == OV7670_CAP_SINGLE_FRAME)
+	{
+		s_destAddressForContiuousMode = 0;
+		HAL_DCMI_DisableCrop(sp_hdcmi);
+		HAL_DCMI_ConfigCrop(sp_hdcmi, 0, startLine, CAM_VGA_WIDTH*2, linesQty);
+		HAL_DCMI_EnableCrop(sp_hdcmi);
+		HAL_DCMI_Start_DMA(sp_hdcmi, DCMI_MODE_SNAPSHOT, destAddress,
+		OV7670_QVGA_WIDTH * linesQty / 2);
+
+	}
+
+	return RET_OK;
+}
+
 RET ov7670_stopCap()
 {
 	HAL_DCMI_Stop(sp_hdcmi);
