@@ -51,7 +51,7 @@
 #define PICTURE_SIZE CAM_VGA_WIDTH * CAM_VGA_HEIGHT * 2
 /*We send PICTURE_DIVIDER pieces of picture in order to minimize buffer size
  Every piece is a cropped original picture*/
-#define PICTURE_DIVIDER 8
+#define PICTURE_DIVIDER 3
 #define BUFFER_SIZE  PICTURE_SIZE/PICTURE_DIVIDER
 /* USER CODE END PD */
 
@@ -69,15 +69,25 @@ uint8_t CAM_Frame_Buffer[BUFFER_SIZE] =
 volatile uint8_t displayState = 0;
 
 osSemaphoreId bDCMIComplitedSemaphoreHandle;
-/* USER CODE END Variables */
-osThreadId defaultTaskHandle;
-osThreadId camTaskHandle;
-osThreadId displayTaskHandle;
-osSemaphoreId bCameraSemaphoreHandle;
-osSemaphoreId bEthSemaphoreHandle;
-osSemaphoreId bDisplaySemaphoreHandle;
 
 extern DCMI_HandleTypeDef hdcmi;
+/* USER CODE END Variables */
+osThreadId defaultTaskHandle;
+uint32_t defaultTaskBuffer[ 512 ];
+osStaticThreadDef_t defaultTaskControlBlock;
+osThreadId camTaskHandle;
+uint32_t camTaskBuffer[ 512 ];
+osStaticThreadDef_t camTaskControlBlock;
+osThreadId displayTaskHandle;
+uint32_t displayTaskBuffer[ 512 ];
+osStaticThreadDef_t displayTaskControlBlock;
+osSemaphoreId bCameraSemaphoreHandle;
+osStaticSemaphoreDef_t bCameraSemaphoreControlBlock;
+osSemaphoreId bEthSemaphoreHandle;
+osStaticSemaphoreDef_t bEthSemaphoreControlBlock;
+osSemaphoreId bDisplaySemaphoreHandle;
+osStaticSemaphoreDef_t bDisplaySemaphoreControlBlock;
+
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
 static void tcp_thread(void *arg);
@@ -126,15 +136,15 @@ void MX_FREERTOS_Init(void) {
 
   /* Create the semaphores(s) */
   /* definition and creation of bCameraSemaphore */
-  osSemaphoreDef(bCameraSemaphore);
+  osSemaphoreStaticDef(bCameraSemaphore, &bCameraSemaphoreControlBlock);
   bCameraSemaphoreHandle = osSemaphoreCreate(osSemaphore(bCameraSemaphore), 1);
 
   /* definition and creation of bEthSemaphore */
-  osSemaphoreDef(bEthSemaphore);
+  osSemaphoreStaticDef(bEthSemaphore, &bEthSemaphoreControlBlock);
   bEthSemaphoreHandle = osSemaphoreCreate(osSemaphore(bEthSemaphore), 1);
 
   /* definition and creation of bDisplaySemaphore */
-  osSemaphoreDef(bDisplaySemaphore);
+  osSemaphoreStaticDef(bDisplaySemaphore, &bDisplaySemaphoreControlBlock);
   bDisplaySemaphoreHandle = osSemaphoreCreate(osSemaphore(bDisplaySemaphore), 1);
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
@@ -152,15 +162,15 @@ void MX_FREERTOS_Init(void) {
 
   /* Create the thread(s) */
   /* definition and creation of defaultTask */
-  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 512);
+  osThreadStaticDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 512, defaultTaskBuffer, &defaultTaskControlBlock);
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
   /* definition and creation of camTask */
-  osThreadDef(camTask, StartCamTask, osPriorityLow, 0, 512);
+  osThreadStaticDef(camTask, StartCamTask, osPriorityLow, 0, 512, camTaskBuffer, &camTaskControlBlock);
   camTaskHandle = osThreadCreate(osThread(camTask), NULL);
 
   /* definition and creation of displayTask */
-  osThreadDef(displayTask, StartDisplayTask, osPriorityLow, 0, 512);
+  osThreadStaticDef(displayTask, StartDisplayTask, osPriorityLow, 0, 512, displayTaskBuffer, &displayTaskControlBlock);
   displayTaskHandle = osThreadCreate(osThread(displayTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */

@@ -5,7 +5,6 @@ import math
 from datetime import datetime
 import time
 import socket
-import sys
 
 start_time = time.time()
 
@@ -16,9 +15,7 @@ data = np.zeros((h, w, 3), dtype=np.uint8)
 
 #stmData = serial.Serial('com3', 115200)
 
-# Create a TCP/IP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-# Connect the socket to the port where the server is listening
 server_address = ('192.168.1.191', 7)
 sock.connect(server_address)
 
@@ -26,7 +23,6 @@ message = 'I`m ready'
 msg_bytes = bytes(message, 'utf-8')
 
 while True:
-
     #raw_pixel_arr = stmData.read(w * h * 2)
 
     now = datetime.now()
@@ -65,12 +61,3 @@ while True:
     img.save('save/pic_' + dt_string + '.png')
     print("Saved %s" % (time.time() - start_time))
     print("--------------------------")
-
-
-
-
-
-
-
-
-
