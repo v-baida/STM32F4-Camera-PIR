@@ -51,7 +51,7 @@
 #define PICTURE_SIZE CAM_VGA_WIDTH * CAM_VGA_HEIGHT * 2
 /*We send PICTURE_DIVIDER pieces of picture in order to minimize buffer size
  Every piece is a cropped original picture*/
-#define PICTURE_DIVIDER 3
+#define PICTURE_DIVIDER 1
 #define BUFFER_SIZE  PICTURE_SIZE/PICTURE_DIVIDER
 /* USER CODE END PD */
 
@@ -372,7 +372,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	UNUSED(GPIO_Pin);
 
 	__HAL_GPIO_EXTI_MASK_IT(USER_Btn_Pin);
-	if (GPIO_Pin == GPIO_PIN_13)
+	if (GPIO_Pin == USER_Btn_Pin)
 	{
 		osSemaphoreRelease(bCameraSemaphoreHandle);
 	}
